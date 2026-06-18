@@ -456,7 +456,7 @@
         <input type="text" id="searchInput" placeholder="Cari post..." oninput="filterPosts()">
       </div>
     </div>
-    <a href="https://discord.com/users/852846392816566302" class="sayhi" target="_blank">Say Hi!</a>
+    <a href="https://t.me/RvLnd" class="sayhi" target="_blank">Say Hi!</a>
   </nav>
 
   <div class="container">
@@ -470,10 +470,10 @@
     <div class="bio">personal diary · thoughts · moments ☕</div>
 
     <div class="socials">
-      <a href="https://discord.com/users/852846392816566302" class="social-link" target="_blank">💬 Discord</a>
-      <a href="mailto:jomokphobic@forward.vin.vercel" class="social-link">✉️ Email</a>
+      <a href="https://t.me/RvLnd" class="social-link" target="_blank"> Instagram </a>
+      <a href="https://discord.com/users/606809579073961985" class="social-link" target="_blank">💬 Discord</a>
+      <a href="mailto:homophobic@forward.avel.run" class="social-link">✉️ Email</a>
     </div>
-
 
     <div class="stats-bar">
       <div class="stat"><div class="stat-num" id="stat-posts">0</div><div class="stat-lbl">Posts</div></div>
@@ -506,10 +506,7 @@
     <div class="secret-container" id="secretContainer">
       <div class="secret-title">well u found secret.</div>
       <div class="secret-content">
-        Lain Iwakura: "No matter where you go, everyone's connected."
-              </div>
-                    <div class="secret-content">
-        Lain Iwakura: "I’m confused again. Am I here, or am I there? ... Over there, I’m everywhere, I know that. But here is connected to over there, is that right? But then, where is the real me after all is said and done? Oh! I see, there is no real me. I only exist inside those people who are aware of my existence."
+        since u who read this maybe die in the future, i want to tell u something. so u are not dying of curiosity lol, well J (Jeanne) thats her name is my close friend from the kindergarten, like im in the same classroom w her for almost like 14 years from kindergarten to highscholl, (at the last year of highscholl or year 3) i got transfered to another school, but u know what guys, she appears at my graduation photo lol, quietly slipped into my graduation photo, IDK HOW SHE DID THAT, also also going back to time when we was in the different scholl, we still hanging out every day EVERY DAY, yeah bc me and her sharing the same classroom for 14 years lmao, when i wrote this easter egg at 17/12/25 im sure u will see my post at Dec 13, 2025? when i mention the chocolate stuff? its bc of i gave her chocolate and she look cute even if its not 14 feb, fuck why im oversharing this all and her real name lol, well its ok bc no one will found this easter egg. goodbye, reader. Avel - 17/12/2025
       </div>
       <div class="secret-footer">how the fuck you found this?</div>
     </div>
@@ -560,7 +557,7 @@
     </div>
   </div>
 
-  <footer>© 2025 darvinct · made w/ ♥ · <span style="cursor:pointer;color:var(--border-hover)" onclick="document.getElementById('logoClick').click()">click darvinct 5x</span></footer>
+  <footer>© 2025 darvinct · made w/ ♥ · <span style="cursor:pointer;color:var(--border-hover)" onclick="document.getElementById('logoClick').click()">click logo 5x</span></footer>
 
   <script>
     // ── Storage keys ──────────────────────────────────────────────────────────
@@ -568,7 +565,7 @@
     const LIKES_KEY     = 'darvinct_likes_v2';
     const UNLOCK_KEY    = 'darvinct_unlocked';
     const STARTED_KEY   = 'darvinct_started';
-    const PASSWORD      = "123"; // ganti password di sini
+    let adminPassword  = ''; // diisi saat login
 
     // ── State ─────────────────────────────────────────────────────────────────
     let posts       = [];
@@ -580,19 +577,11 @@
     let pendingTags = [];
     let searchQuery = '';
 
-    // ── Cloud Storage via artifact API ────────────────────────────────────────
-    // ── Cloud Storage via JSONBin.io ─────────────────────────────────────────
-    const BIN_ID  = '6a335d88f5f4af5e2905f7b8';
-    const API_KEY = '$2a$10$QxAZSvoaILog3lcqq4Cf..2GgQA9ylw9brdemqanVjqfWMb9JUgnK';
-    const BIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
-
+    // ── Cloud Storage via /api/posts (serverless) ───────────────────────────
     async function loadPosts() {
       try {
-        const res  = await fetch(BIN_URL + '/latest', {
-          headers: { 'X-Master-Key': API_KEY }
-        });
-        const data = await res.json();
-        posts = data.record?.posts || [];
+        const res = await fetch('/api/posts');
+        posts = await res.json();
       } catch(e) {
         posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
       }
@@ -602,11 +591,11 @@
 
     async function savePosts() {
       try {
-        await fetch(BIN_URL, {
+        await fetch('/api/posts', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'X-Master-Key': API_KEY
+            'x-admin-password': adminPassword
           },
           body: JSON.stringify({ posts })
         });
@@ -627,17 +616,28 @@
     });
 
     // ── Auth ──────────────────────────────────────────────────────────────────
-    function checkPassword() {
+    async function checkPassword() {
       const val = document.getElementById('passwordInput').value.trim();
+      if (!val) return;
+      // verify password via server
+      const res = await fetch('/api/posts', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'x-admin-password': val },
+        body: JSON.stringify({ posts })
+      });
       document.getElementById('passwordPopup').style.display = 'none';
       document.getElementById('passwordInput').value = '';
-      if (val === PASSWORD) {
-        isUnlocked = true;
-        sessionStorage.setItem(UNLOCK_KEY, '1');
-        showToast('✅ Akses admin dibuka!');
-        renderAll();
-      } else if (val) {
-        showToast('❌ Password salah!');
+      if (res.status === 200 || res.status === 401 === false) {
+        if (res.ok) {
+          adminPassword = val;
+          isUnlocked = true;
+          sessionStorage.setItem(UNLOCK_KEY, '1');
+          sessionStorage.setItem('darvinct_pw', val);
+          showToast('✅ Akses admin dibuka!');
+          renderAll();
+        } else {
+          showToast('❌ Password salah!');
+        }
       }
     }
 
