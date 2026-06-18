@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>darvinct</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --surface-2: #1c1c1c;
+      --border: #262626;
+      --border-hover: #333;
+      --text: #ededed;
+      --text-dim: #888;
+      --text-muted: #555;
+      --accent: #fff;
+      --accent-hover: #f0f0f0;
+      --danger: #e5484d;
+      --radius: 12px;
+      --radius-lg: 16px;
+      --shadow: 0 10px 40px rgba(0,0,0,0.6);
+      --transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== NAVBAR (selalu ngambang / pill, full content) ===== */
+    nav {
+      background: rgba(18,18,18,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      border: 1px solid var(--border-hover);
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(880px, calc(100% - 28px));
+      border-radius: 999px;
+      z-index: 200;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04);
+    }
+
+    /* Logo - normal state */
+    .logo-container {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+      cursor: pointer;
+      user-select: none;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+    .logo-container:hover { opacity: 0.65; }
+
+    .nav-links { display:flex; gap:4px; align-items:center; }
+    .nav-links a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      position: relative;
+      padding: 6px 12px;
+      border-radius: 999px;
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+    .nav-links a:hover { color:var(--text); background:rgba(255,255,255,0.07); }
+    .nav-links a .popup-tip {
+      visibility: hidden; opacity: 0;
+      position: absolute; top: calc(100% + 10px); left: 50%;
+      transform: translateX(-50%) translateY(-4px);
+      background: var(--surface-2); color: var(--text);
+      padding: 8px 14px; border-radius: 10px;
+      font-size: 0.8rem; font-weight: 400; white-space: nowrap;
+      box-shadow: var(--shadow); border: 1px solid var(--border-hover);
+      transition: all 0.2s ease; z-index: 1000; pointer-events: none;
+    }
+    .nav-links a:hover .popup-tip {
+      visibility: visible; opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .search-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-wrap input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-family: inherit;
+      width: 160px;
+      transition: var(--transition);
+      outline: none;
+    }
+    .search-wrap input:focus { border-color: var(--border-hover); width: 200px; }
+    .search-wrap input::placeholder { color: var(--text-muted); }
+
+    .sayhi {
+      background: var(--accent); color: #000;
+      padding: 7px 16px; border-radius: 999px;
+      font-weight: 600; font-size: 0.85rem;
+      text-decoration: none; transition: var(--transition);
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .sayhi:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(255,255,255,0.12);
+    }
+
+    /* Push content down so it's not hidden behind floating pill nav */
+    body { padding-top: 96px; }
+
+    /* ===== FLOATING BTN ===== */
+    .floating-btn {
+      position: fixed; right: 28px; bottom: 28px;
+      background: var(--accent); color: #000;
+      width: 56px; height: 56px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.9rem; font-weight: 300;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.7);
+      cursor: pointer; z-index: 150; border: none;
+      transition: var(--transition);
+    }
+    .floating-btn:hover { transform: scale(1.08) rotate(90deg); }
+    .floating-btn:active { transform: scale(0.95); }
+
+    /* ===== PROFILE ===== */
+    .profile-container { position:relative; display:inline-block; margin: 44px auto 22px; }
+    .profile {
+      width: 140px; height: 140px; border-radius: 50%;
+      object-fit: cover; border: 3px solid var(--border-hover);
+      box-shadow: var(--shadow); cursor: pointer; transition: var(--transition);
+    }
+    .profile:hover { transform: scale(1.04); border-color: var(--text-dim); }
+    .profile-popup-tip {
+      visibility: hidden; opacity: 0;
+      position: absolute; top: -12px; left: 50%;
+      transform: translateX(-50%) translateY(-4px);
+      background: var(--surface-2); color: var(--text);
+      padding: 7px 14px; border-radius: 20px;
+      font-size: 0.82rem; font-weight: 500; white-space: nowrap;
+      box-shadow: var(--shadow); border: 1px solid var(--border-hover);
+      z-index: 100; transition: all 0.25s ease; pointer-events: none;
+    }
+    .profile-container:hover .profile-popup-tip {
+      visibility: visible; opacity: 1;
+      top: -40px; transform: translateX(-50%) translateY(0);
+    }
+    /* Online dot */
+    .online-dot {
+      position: absolute; bottom: 6px; right: 6px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: #22c55e; border: 3px solid var(--bg);
+    }
+
+    /* ===== CONTAINER ===== */
+    .container { max-width: 680px; margin: 0 auto; padding: 0 20px 80px; text-align: center; }
+
+    h1 {
+      font-size: 2.2rem; margin-bottom: 6px;
+      font-weight: 300; letter-spacing: -0.03em; color: var(--text);
+    }
+    .bio {
+      font-size: 0.88rem; color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    /* Tags filter */
+    .tags-filter {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      justify-content: center; margin-bottom: 24px;
+    }
+    .tag-btn {
+      background: var(--surface); color: var(--text-dim);
+      border: 1px solid var(--border); border-radius: 20px;
+      padding: 5px 14px; font-size: 0.78rem; font-weight: 500;
+      cursor: pointer; font-family: inherit;
+      transition: var(--transition);
+    }
+    .tag-btn:hover, .tag-btn.active {
+      background: var(--accent); color: #000;
+      border-color: var(--accent);
+    }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex; gap: 20px; justify-content: center;
+      margin-bottom: 28px;
+    }
+    .stat { text-align: center; }
+    .stat-num { font-size: 1.2rem; font-weight: 600; color: var(--text); }
+    .stat-lbl { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* ===== POSTS ===== */
+    .posts { text-align: left; }
+    .post {
+      background: var(--surface);
+      padding: 22px;
+      margin: 12px 0;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      position: relative;
+      transition: var(--transition);
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { opacity:0; transform:translateY(10px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .post:hover { border-color: var(--border-hover); transform: translateY(-1px); }
+
+    .post-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+    .post-date { font-size: 0.78rem; color: var(--text-muted); font-weight:500; text-transform:uppercase; letter-spacing:0.05em; }
+
+    .post-tags { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:8px; }
+    .post-tag {
+      background: var(--surface-2); color: var(--text-dim);
+      padding: 2px 10px; border-radius: 20px; font-size: 0.7rem;
+      border: 1px solid var(--border);
+    }
+
+    .post-note {
+      font-size: 0.97rem; color: var(--text);
+      line-height: 1.7; white-space: pre-wrap; word-wrap: break-word;
+    }
+    .post img, .post video {
+      max-width: 100%; border-radius: 10px; margin-top: 14px; display: block;
+    }
+
+    /* Post footer - like + delete */
+    .post-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 14px; padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .like-btn {
+      background: none; border: none; color: var(--text-muted);
+      font-size: 0.82rem; cursor: pointer; font-family: inherit;
+      display: flex; align-items: center; gap: 5px;
+      padding: 4px 8px; border-radius: 8px;
+      transition: var(--transition);
+    }
+    .like-btn:hover { color: #f87171; background: rgba(248,113,113,0.08); }
+    .like-btn.liked { color: #f87171; }
+    .like-btn .heart { font-size: 1rem; }
+
+    .delete-btn {
+      background: transparent; border: none; color: var(--text-muted);
+      font-size: 0.85rem; cursor: pointer; padding: 4px 8px;
+      border-radius: 8px; opacity: 0; transition: var(--transition);
+    }
+    .post:hover .delete-btn { opacity: 1; }
+    .delete-btn:hover { color: var(--danger); background: rgba(229,72,77,0.1); }
+
+    /* Empty state */
+    .empty-state {
+      padding: 60px 0; color: var(--text-muted);
+      font-size: 0.9rem; text-align: center;
+    }
+    .empty-state .emoji { font-size: 2.5rem; margin-bottom: 12px; display: block; }
+
+    /* ===== SECRET EASTER EGG ===== */
+    .secret-container {
+      display: none; margin-top: 40px;
+      padding: 40px 30px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+      border: 1px solid var(--border-hover); border-radius: var(--radius-lg);
+      animation: fadeInSecret 0.8s ease;
+    }
+    .secret-container.show { display: block; }
+    @keyframes fadeInSecret {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .secret-title { font-size:1.5rem; font-weight:600; margin-bottom:20px; text-align:center; }
+    .secret-content { font-size:0.9rem; line-height:1.8; color:var(--text-dim); text-align:center; margin-bottom:20px; font-style:italic; }
+    .secret-footer { font-size:0.82rem; color:var(--text-muted); text-align:center; margin-top:24px; padding-top:18px; border-top:1px solid var(--border); }
+
+    /* ===== MODALS ===== */
+    #postPopup, #confirmPopup, #passwordPopup {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.82);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      z-index: 2000; align-items: center; justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+    @keyframes slideUp {
+      from { opacity:0; transform:translateY(20px) scale(0.97); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
+
+    .popup-form, .confirm-box, .password-box {
+      background: var(--surface-2); padding: 28px;
+      border-radius: var(--radius-lg); width: 90%; max-width: 440px;
+      border: 1px solid var(--border-hover); box-shadow: var(--shadow);
+      animation: slideUp 0.25s ease;
+    }
+    .popup-form h2, .confirm-box h3, .password-box h3 {
+      font-size: 1.2rem; font-weight: 600; margin-bottom: 18px; letter-spacing: -0.01em;
+    }
+    .confirm-box p { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 18px; }
+
+    textarea, input[type="text"], input[type="password"] {
+      width: 100%; padding: 12px 14px;
+      background: var(--bg); color: var(--text);
+      border: 1px solid var(--border-hover); border-radius: 10px;
+      font-size: 0.93rem; font-family: inherit;
+      margin-bottom: 12px; transition: var(--transition); resize: vertical;
+    }
+    textarea { min-height: 110px; }
+    textarea:focus, input:focus {
+      outline: none; border-color: #555; background: #0d0d0d;
+    }
+
+    input[type="file"] {
+      width: 100%; padding: 11px 12px;
+      background: var(--bg); color: var(--text-dim);
+      border: 1px dashed var(--border-hover);
+      border-radius: 10px; margin-bottom: 12px;
+      font-size: 0.88rem; cursor: pointer; font-family: inherit;
+      transition: var(--transition);
+    }
+    input[type="file"]:hover { border-color: #555; }
+    input[type="file"]::file-selector-button {
+      background: var(--border-hover); color: var(--text);
+      border: none; padding: 5px 11px; border-radius: 6px;
+      margin-right: 10px; cursor: pointer; font-family: inherit;
+      font-size: 0.82rem; transition: var(--transition);
+    }
+
+    /* Tag input inside modal */
+    .tag-input-row {
+      display: flex; gap: 8px; margin-bottom: 14px;
+    }
+    .tag-input-row input { margin-bottom: 0; flex: 1; }
+    .tag-add-btn {
+      background: var(--surface); color: var(--text-dim);
+      border: 1px solid var(--border-hover); border-radius: 10px;
+      padding: 0 14px; font-size: 0.85rem; cursor: pointer;
+      font-family: inherit; transition: var(--transition); white-space: nowrap;
+    }
+    .tag-add-btn:hover { background: var(--border); color: var(--text); }
+    .tags-preview { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; min-height:0; }
+    .tag-chip {
+      background: var(--surface); color: var(--text-dim);
+      border: 1px solid var(--border-hover); border-radius: 20px;
+      padding: 3px 10px; font-size: 0.72rem; display:flex; align-items:center; gap:5px;
+    }
+    .tag-chip button { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.75rem; padding:0; line-height:1; }
+
+    .btn-group, .confirm-btns { display:flex; gap:10px; margin-top:6px; }
+    .btn-group button, .confirm-btns button, .password-box button {
+      flex: 1; padding: 11px; border: none; border-radius: 10px;
+      font-size: 0.93rem; font-weight: 600; font-family: inherit;
+      cursor: pointer; transition: var(--transition);
+    }
+    .btn-post { background: var(--accent); color:#000; }
+    .btn-post:hover { background: var(--accent-hover); transform:translateY(-1px); }
+    .btn-batal { background: var(--surface); color: var(--text-dim); border: 1px solid var(--border-hover) !important; }
+    .btn-batal:hover { background: var(--border); color: var(--text); }
+    .btn-hapus { background: var(--danger); color: white; }
+    .btn-hapus:hover { background: #c1373c; transform:translateY(-1px); }
+    .password-box button { background: var(--accent); color:#000; margin-top:4px; }
+    .password-box button:hover { background: var(--accent-hover); }
+    .password-box p { color:var(--text-muted); font-size:0.78rem; text-align:center; margin-top:10px; }
+
+    /* Toast notification */
+    #toast {
+      position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--surface-2); color: var(--text);
+      padding: 10px 20px; border-radius: 20px;
+      font-size: 0.82rem; font-weight: 500;
+      border: 1px solid var(--border-hover);
+      box-shadow: var(--shadow); z-index: 9999;
+      opacity: 0; transition: all 0.3s ease; pointer-events: none;
+    }
+    #toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+    /* ===== SOCIAL LINKS ===== */
+    .socials { display:flex; gap:10px; justify-content:center; margin-bottom:28px; }
+    .social-link {
+      display:flex; align-items:center; gap:6px;
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text-dim); text-decoration:none;
+      padding: 7px 14px; border-radius: 20px;
+      font-size: 0.78rem; font-weight: 500;
+      transition: var(--transition);
+    }
+    .social-link:hover { border-color: var(--border-hover); color: var(--text); background: var(--surface-2); }
+
+    /* ===== FOOTER ===== */
+    footer {
+      text-align: center; padding: 48px 20px;
+      color: var(--text-muted); font-size: 0.82rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 600px) {
+      .nav-links { gap: 2px; }
+      .nav-links a { padding: 6px 9px; font-size: 0.84rem; }
+      .search-wrap { display:none; }
+      .sayhi { padding: 7px 14px; font-size: 0.82rem; }
+      h1 { font-size: 1.9rem; }
+      .profile { width:120px; height:120px; }
+      .floating-btn { right:18px; bottom:18px; width:52px; height:52px; }
+      .stats-bar { gap:14px; }
+    }
+
+    /* Loading skeleton */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 8px; height: 14px; margin-bottom: 8px;
+    }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  </style>
+</head>
+<body>
+
+  <nav id="mainNav">
+    <a href="#" class="logo-container" id="logoClick">darvinct</a>
+    <div class="nav-links">
+      <a href="#">Me<div class="popup-tip">Profil & Informasi Saya</div></a>
+      <a href="#">Secret<div class="popup-tip">Halaman rahasia 👀</div></a>
+      <div class="search-wrap">
+        <input type="text" id="searchInput" placeholder="Cari post..." oninput="filterPosts()">
+      </div>
+    </div>
+    <a href="https://t.me/RvLnd" class="sayhi" target="_blank">Say Hi!</a>
+  </nav>
+
+  <div class="container">
+    <div class="profile-container">
+      <img src="https://files.catbox.moe/4qsk6i.jpg" class="profile" alt="darvinct">
+      <div class="profile-popup-tip">aku sigma hi</div>
+      <div class="online-dot"></div>
+    </div>
+
+    <h1>darvinct</h1>
+    <div class="bio">personal diary · thoughts · moments ☕</div>
+
+    <div class="socials">
+      <a href="https://t.me/RvLnd" class="social-link" target="_blank"> Instagram </a>
+      <a href="https://discord.com/users/606809579073961985" class="social-link" target="_blank">💬 Discord</a>
+      <a href="mailto:homophobic@forward.avel.run" class="social-link">✉️ Email</a>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat"><div class="stat-num" id="stat-posts">0</div><div class="stat-lbl">Posts</div></div>
+      <div class="stat"><div class="stat-num" id="stat-likes">0</div><div class="stat-lbl">Likes</div></div>
+      <div class="stat"><div class="stat-num" id="stat-days">0</div><div class="stat-lbl">Days Active</div></div>
+    </div>
+
+    <div class="tags-filter" id="tagsFilter">
+      <button class="tag-btn active" onclick="filterByTag(this,'all')">✦ All</button>
+    </div>
+
+    <div class="posts" id="postsContainer">
+      <!-- skeleton loader -->
+      <div id="skeleton" style="padding:8px 0">
+        <div style="background:var(--surface);padding:22px;border-radius:12px;border:1px solid var(--border);margin-bottom:12px">
+          <div class="skeleton" style="width:30%;height:11px"></div>
+          <div class="skeleton" style="width:90%"></div>
+          <div class="skeleton" style="width:75%"></div>
+          <div class="skeleton" style="width:50%"></div>
+        </div>
+        <div style="background:var(--surface);padding:22px;border-radius:12px;border:1px solid var(--border)">
+          <div class="skeleton" style="width:25%;height:11px"></div>
+          <div class="skeleton" style="width:85%"></div>
+          <div class="skeleton" style="width:60%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EASTER EGG -->
+    <div class="secret-container" id="secretContainer">
+      <div class="secret-title">well u found secret.</div>
+      <div class="secret-content">
+        since u who read this maybe die in the future, i want to tell u something. so u are not dying of curiosity lol, well J (Jeanne) thats her name is my close friend from the kindergarten, like im in the same classroom w her for almost like 14 years from kindergarten to highscholl, (at the last year of highscholl or year 3) i got transfered to another school, but u know what guys, she appears at my graduation photo lol, quietly slipped into my graduation photo, IDK HOW SHE DID THAT, also also going back to time when we was in the different scholl, we still hanging out every day EVERY DAY, yeah bc me and her sharing the same classroom for 14 years lmao, when i wrote this easter egg at 17/12/25 im sure u will see my post at Dec 13, 2025? when i mention the chocolate stuff? its bc of i gave her chocolate and she look cute even if its not 14 feb, fuck why im oversharing this all and her real name lol, well its ok bc no one will found this easter egg. goodbye, reader. Avel - 17/12/2025
+      </div>
+      <div class="secret-footer">how the fuck you found this?</div>
+    </div>
+  </div>
+
+  <button class="floating-btn" onclick="showPostPopup()" title="Buat Post Baru" aria-label="Buat Post Baru">+</button>
+
+  <!-- Toast -->
+  <div id="toast"></div>
+
+  <!-- Password Popup -->
+  <div id="passwordPopup">
+    <div class="password-box">
+      <h3>🔐 Masukkan Password</h3>
+      <input type="password" id="passwordInput" placeholder="Password..." onkeydown="if(event.key==='Enter')checkPassword()">
+      <button onclick="checkPassword()">Masuk</button>
+      <p>Hanya untuk darvinct</p>
+    </div>
+  </div>
+
+  <!-- Post Popup -->
+  <div id="postPopup">
+    <div class="popup-form">
+      <h2>✍️ Post Baru</h2>
+      <textarea id="note" placeholder="Lagi mikirin apa? Tulis aja..."></textarea>
+      <div class="tag-input-row">
+        <input type="text" id="tagInput" placeholder="Tambah tag... (opsional)" onkeydown="if(event.key==='Enter'){event.preventDefault();addTagChip()}">
+        <button class="tag-add-btn" onclick="addTagChip()">+ Tag</button>
+      </div>
+      <div class="tags-preview" id="tagsPreview"></div>
+      <input type="file" id="fileInput" accept="image/*,video/*">
+      <div class="btn-group">
+        <button onclick="addPost()" class="btn-post">Post 🚀</button>
+        <button onclick="hidePostPopup()" class="btn-batal">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirm -->
+  <div id="confirmPopup">
+    <div class="confirm-box">
+      <h3>Hapus Post ini?</h3>
+      <p>Tindakan ini tidak bisa dibatalkan.</p>
+      <div class="confirm-btns">
+        <button onclick="confirmDelete()" class="btn-hapus">Ya, Hapus</button>
+        <button onclick="cancelDelete()" class="btn-batal">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>© 2025 darvinct · made w/ ♥ · <span style="cursor:pointer;color:var(--border-hover)" onclick="document.getElementById('logoClick').click()">click logo 5x</span></footer>
+
+  <script>
+    // ── Storage keys ──────────────────────────────────────────────────────────
+    const STORAGE_KEY   = 'darvinct_posts_v2';
+    const LIKES_KEY     = 'darvinct_likes_v2';
+    const UNLOCK_KEY    = 'darvinct_unlocked';
+    const STARTED_KEY   = 'darvinct_started';
+    const PASSWORD      = "123"; // ganti password di sini
+
+    // ── State ─────────────────────────────────────────────────────────────────
+    let posts       = [];
+    let myLikes     = JSON.parse(localStorage.getItem(LIKES_KEY) || '{}');
+    let isUnlocked  = sessionStorage.getItem(UNLOCK_KEY) === '1';
+    let postToDelete= null;
+    let clickCount  = 0;
+    let currentTag  = 'all';
+    let pendingTags = [];
+    let searchQuery = '';
+
+    // ── Cloud Storage via artifact API ────────────────────────────────────────
+    async function loadPosts() {
+      try {
+        const result = await window.storage.get('posts', true);
+        posts = result ? JSON.parse(result.value) : [];
+      } catch(e) {
+        // fallback to localStorage if storage not available
+        posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      }
+      document.getElementById('skeleton').remove();
+      renderAll();
+    }
+
+    async function savePosts() {
+      try {
+        await window.storage.set('posts', JSON.stringify(posts), true);
+      } catch(e) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+      }
+    }
+
+    // ── Easter egg ────────────────────────────────────────────────────────────
+    document.getElementById('logoClick').addEventListener('click', e => {
+      e.preventDefault();
+      if (++clickCount >= 5) {
+        const s = document.getElementById('secretContainer');
+        s.classList.add('show');
+        setTimeout(() => s.scrollIntoView({ behavior:'smooth', block:'center' }), 100);
+        clickCount = 0;
+      }
+    });
+
+    // ── Auth ──────────────────────────────────────────────────────────────────
+    function checkPassword() {
+      const val = document.getElementById('passwordInput').value.trim();
+      document.getElementById('passwordPopup').style.display = 'none';
+      document.getElementById('passwordInput').value = '';
+      if (val === PASSWORD) {
+        isUnlocked = true;
+        sessionStorage.setItem(UNLOCK_KEY, '1');
+        showToast('✅ Akses admin dibuka!');
+        renderAll();
+      } else if (val) {
+        showToast('❌ Password salah!');
+      }
+    }
+
+    // ── Post popup ────────────────────────────────────────────────────────────
+    function showPostPopup() {
+      if (!isUnlocked) { document.getElementById('passwordPopup').style.display = 'flex'; return; }
+      pendingTags = [];
+      document.getElementById('tagsPreview').innerHTML = '';
+      document.getElementById('postPopup').style.display = 'flex';
+      setTimeout(() => document.getElementById('note').focus(), 100);
+    }
+
+    function hidePostPopup() {
+      document.getElementById('postPopup').style.display = 'none';
+      document.getElementById('note').value = '';
+      document.getElementById('tagInput').value = '';
+      document.getElementById('fileInput').value = '';
+      pendingTags = [];
+      document.getElementById('tagsPreview').innerHTML = '';
+    }
+
+    // ── Tags ──────────────────────────────────────────────────────────────────
+    function addTagChip() {
+      const val = document.getElementById('tagInput').value.trim().toLowerCase().replace(/\s+/g,'-');
+      if (!val || pendingTags.includes(val)) return;
+      pendingTags.push(val);
+      document.getElementById('tagInput').value = '';
+      renderTagChips();
+    }
+
+    function removeTagChip(tag) {
+      pendingTags = pendingTags.filter(t => t !== tag);
+      renderTagChips();
+    }
+
+    function renderTagChips() {
+      document.getElementById('tagsPreview').innerHTML = pendingTags.map(t =>
+        `<div class="tag-chip">#${t}<button onclick="removeTagChip('${t}')">✕</button></div>`
+      ).join('');
+    }
+
+    // ── Add post ──────────────────────────────────────────────────────────────
+    async function addPost() {
+      if (!isUnlocked) return;
+      const note = document.getElementById('note').value.trim();
+      const file = document.getElementById('fileInput').files[0];
+      if (!note && !file) { showToast('⚠️ Tulis sesuatu dulu!'); return; }
+
+      const newPost = {
+        id: Date.now(),
+        timestamp: Date.now(),
+        note,
+        tags: [...pendingTags],
+        likes: 0
+      };
+
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = async e => {
+          newPost.file     = e.target.result;
+          newPost.fileType = file.type;
+          posts.unshift(newPost);
+          await savePosts();
+          hidePostPopup();
+          updateStartedDate();
+          renderAll();
+          showToast('🚀 Post berhasil!');
+        };
+        reader.readAsDataURL(file);
+      } else {
+        posts.unshift(newPost);
+        await savePosts();
+        hidePostPopup();
+        updateStartedDate();
+        renderAll();
+        showToast('🚀 Post berhasil!');
+      }
+    }
+
+    // ── Like ──────────────────────────────────────────────────────────────────
+    async function toggleLike(id) {
+      const post = posts.find(p => p.id === id);
+      if (!post) return;
+      if (myLikes[id]) {
+        post.likes = Math.max(0, (post.likes||0) - 1);
+        delete myLikes[id];
+      } else {
+        post.likes = (post.likes||0) + 1;
+        myLikes[id] = 1;
+      }
+      localStorage.setItem(LIKES_KEY, JSON.stringify(myLikes));
+      await savePosts();
+      renderAll();
+    }
+
+    // ── Delete ────────────────────────────────────────────────────────────────
+    function showDeleteConfirm(id) {
+      if (!isUnlocked) { document.getElementById('passwordPopup').style.display = 'flex'; return; }
+      postToDelete = id;
+      document.getElementById('confirmPopup').style.display = 'flex';
+    }
+    async function confirmDelete() {
+      posts = posts.filter(p => p.id !== postToDelete);
+      await savePosts();
+      cancelDelete();
+      renderAll();
+      showToast('🗑 Post dihapus');
+    }
+    function cancelDelete() {
+      document.getElementById('confirmPopup').style.display = 'none';
+      postToDelete = null;
+    }
+
+    // ── Filter / Search ───────────────────────────────────────────────────────
+    function filterByTag(btn, tag) {
+      document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTag = tag;
+      renderPosts();
+    }
+
+    function filterPosts() {
+      searchQuery = document.getElementById('searchInput').value.toLowerCase();
+      renderPosts();
+    }
+
+    function getFilteredPosts() {
+      return posts.filter(p => {
+        const matchTag  = currentTag === 'all' || (p.tags||[]).includes(currentTag);
+        const matchSearch = !searchQuery ||
+          (p.note||'').toLowerCase().includes(searchQuery) ||
+          (p.tags||[]).some(t => t.includes(searchQuery));
+        return matchTag && matchSearch;
+      });
+    }
+
+    // ── Render ────────────────────────────────────────────────────────────────
+    function formatDate(ts) {
+      return new Date(ts).toLocaleDateString('id-ID', { day:'numeric', month:'short', year:'numeric' });
+    }
+
+    function escapeHtml(text) {
+      const d = document.createElement('div');
+      d.textContent = text;
+      return d.innerHTML;
+    }
+
+    function renderAll() {
+      renderStats();
+      renderTagFilter();
+      renderPosts();
+    }
+
+    function renderStats() {
+      const totalLikes = posts.reduce((s,p) => s+(p.likes||0), 0);
+      document.getElementById('stat-posts').textContent = posts.length;
+      document.getElementById('stat-likes').textContent = totalLikes;
+
+      // days active
+      let started = localStorage.getItem(STARTED_KEY);
+      if (!started && posts.length > 0) {
+        started = Math.min(...posts.map(p=>p.timestamp));
+        localStorage.setItem(STARTED_KEY, started);
+      }
+      if (started) {
+        const days = Math.max(1, Math.round((Date.now()-started)/(1000*60*60*24)));
+        document.getElementById('stat-days').textContent = days;
+      }
+    }
+
+    function updateStartedDate() {
+      if (!localStorage.getItem(STARTED_KEY)) {
+        localStorage.setItem(STARTED_KEY, Date.now());
+      }
+    }
+
+    function renderTagFilter() {
+      const allTags = [...new Set(posts.flatMap(p => p.tags||[]))];
+      const filter  = document.getElementById('tagsFilter');
+      filter.innerHTML = `<button class="tag-btn ${currentTag==='all'?'active':''}" onclick="filterByTag(this,'all')">✦ All</button>`;
+      allTags.forEach(tag => {
+        const btn = document.createElement('button');
+        btn.className = `tag-btn ${currentTag===tag?'active':''}`;
+        btn.textContent = `#${tag}`;
+        btn.onclick = function(){ filterByTag(this, tag); };
+        filter.appendChild(btn);
+      });
+    }
+
+    function renderPosts() {
+      const container  = document.getElementById('postsContainer');
+      const filtered   = getFilteredPosts();
+      container.innerHTML = '';
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="empty-state">
+          <span class="emoji">${searchQuery ? '🔍' : '✍️'}</span>
+          ${searchQuery ? `Tidak ada post untuk "<strong>${escapeHtml(searchQuery)}</strong>"` : 'Belum ada post. Yuk mulai nulis!'}
+        </div>`;
+        return;
+      }
+
+      filtered.forEach(post => {
+        const el       = document.createElement('div');
+        el.className   = 'post';
+        const liked    = !!myLikes[post.id];
+        const tagsHtml = (post.tags||[]).length
+          ? `<div class="post-tags">${post.tags.map(t=>`<span class="post-tag">#${t}</span>`).join('')}</div>`
+          : '';
+        const mediaHtml= post.fileType?.includes('image')
+          ? `<img src="${post.file}" alt="" loading="lazy">`
+          : post.fileType?.includes('video')
+          ? `<video controls src="${post.file}"></video>`
+          : '';
+
+        el.innerHTML = `
+          <div class="post-date">${formatDate(post.timestamp)}</div>
+          ${tagsHtml}
+          ${post.note ? `<div class="post-note">${escapeHtml(post.note)}</div>` : ''}
+          ${mediaHtml}
+          <div class="post-footer">
+            <button class="like-btn ${liked?'liked':''}" onclick="toggleLike(${post.id})">
+              <span class="heart">${liked?'❤️':'🤍'}</span>
+              <span>${post.likes||0}</span>
+            </button>
+            ${isUnlocked ? `<button class="delete-btn" onclick="showDeleteConfirm(${post.id})" title="Hapus">✕</button>` : ''}
+          </div>
+        `;
+        container.appendChild(el);
+      });
+    }
+
+    // ── Toast ─────────────────────────────────────────────────────────────────
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ── Modal backdrop close ──────────────────────────────────────────────────
+    ['postPopup','confirmPopup','passwordPopup'].forEach(id => {
+      document.getElementById(id).addEventListener('click', e => {
+        if (e.target.id === id) document.getElementById(id).style.display = 'none';
+      });
+    });
+
+    // ── Keyboard shortcuts ────────────────────────────────────────────────────
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') ['postPopup','confirmPopup','passwordPopup'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+      });
+    });
+
+    // ── Init ─────────────────────────────────────────────────────────────────
+    loadPosts();
+  </script>
+</body>
+</html>
