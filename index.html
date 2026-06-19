@@ -566,6 +566,10 @@
     const STARTED_KEY  = 'darvinct_started';
     let adminPassword  = '';
 
+    const JSONBIN_BIN_ID  = '6a335d88f5f4af5e2905f7b8';
+    const JSONBIN_API_KEY = '$2a$10$QxAZSvoaILog3lcqq4Cf..2GgQA9ylw9brdemqanVjqfWMb9JUgnK';
+    const JSONBIN_URL     = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+
     let posts       = [];
     let myLikes     = JSON.parse(localStorage.getItem(LIKES_KEY) || '{}');
     let isUnlocked  = sessionStorage.getItem(UNLOCK_KEY) === '1';
@@ -577,9 +581,13 @@
 
     async function loadPosts() {
       try {
-        const res = await fetch('/api/posts');
-        if (!res.ok) throw new Error('no api');
-        posts = await res.json();
+        const res = await fetch(JSONBIN_URL + '/latest', {
+          headers: { 'X-Master-Key': JSONBIN_API_KEY }
+        });
+        if (!res.ok) throw new Error('jsonbin error');
+        const data = await res.json();
+        posts = data.record.posts || [];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
       } catch(e) {
         posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
       }
@@ -590,11 +598,11 @@
     async function savePosts() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
       try {
-        await fetch('/api/posts', {
+        await fetch(JSONBIN_URL, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'x-admin-password': adminPassword
+            'X-Master-Key': JSONBIN_API_KEY
           },
           body: JSON.stringify({ posts })
         });
